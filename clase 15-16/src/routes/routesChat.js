@@ -1,41 +1,37 @@
-import {Router} from "express";
-import { db_SL3 } from "../db/dbConfig.js";
-import "../models/chatModels.js";
+import { Router } from "express";
+import TextMongoDAO from "../persistencia/daos/textDaos.js";
 
 const router = Router();
+const TextMongo = new TextMongoDAO();
 
-router.get(`/mensajes`, async (req, res) => {
-    try {
-        console.log("ok")
-        const chat = await db_SL3.from("chat").select('*')
-        if (chat.length !== 0) {
-
-            res.json({ chat })
-        } else {
-            
-        res.json({ chat: 'Aun no hay mensajes!' })
-        }
-    } catch (error) {
-        console.log(error)
-    }
+router.get('/chat', async (req, res) => {
+    const products = await TextMongo.get()
+    res.send(products)
 })
+
+router.get('/:id', async (req, res) => {
+    const id = req.params.id;
+    const products = await TextMongo.get(id)
+    res.send(products)
+})
+
 router.post('/', async (req, res) => {
-    try {
-        const { email, message } = req.body
-        const timestamp = Date();
-        const newMessage = await db_SL3.from("chat").insert({ email, timestamp, message });
-        res.json({ newMessage })
-    } catch (error) {
-        console.log(error)
-    }
+    const product = req.body
+    const productCreated = await TextMongo.create(product)
+    res.send(productCreated)
 })
+
+router.put('/:id', async (req, res) => {
+    const id  = req.params.id
+    const data = req.body
+    const udaptedProduct = await TextMongo.update(id, data)
+    res.json(udaptedProduct)
+})
+
 router.delete('/:id', async (req, res) => {
-    const  id  = req.params.id
-    try {
-        const deletedMessage = await db_SL3.from("chat").where('id', id).del();
-        res.json({ deletedMessage })
-    } catch (error) {
-        console.log(error)
-    }
+    const id = req.params.id
+    const deletedProduct = await TextMongo.delete(id)
+    res.send(deletedProduct)
 })
+
 export default router;
